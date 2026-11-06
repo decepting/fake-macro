@@ -1,0 +1,88 @@
+-- Da Hood Fake Macro (WalkSpeed Version)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Safe GUI Parent Selection
+local parentObject
+pcall(function()
+    parentObject = game:GetService("CoreGui")
+end)
+if not parentObject then
+    parentObject = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Remove duplicate UI instances
+if parentObject:FindFirstChild("CuteMacroGui") then
+    parentObject.CuteMacroGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CuteMacroGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = parentObject
+
+-- de button
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "MacroToggle"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Soft Pink
+ToggleButton.Position = UDim2.new(0.8, 0, 0.4, 0)
+ToggleButton.Size = UDim2.new(0, 120, 0, 45)
+ToggleButton.Font = Enum.Font.FredokaOne
+ToggleButton.Text = "  ི Macro: OFF "
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 13
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 15)
+UICorner.Parent = ToggleButton
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Thickness = 1
+UIStroke.Parent = ToggleButton
+
+-- Configuration
+local enabled = false
+local normalSpeed = 16
+local macroSpeed = 200
+ -- Adjust this value for higher/lower speed
+
+-- Render Loop for Macro Pulse Effect
+RunService.RenderStepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local humanoid = LocalPlayer.Character.Humanoid
+        if enabled then
+            -- Rapidly alternates speed by small increments to simulate macro jitter
+            local jitter = math.sin(tick() * 60) * 3
+            humanoid.WalkSpeed = macroSpeed + jitter
+        end
+    end
+end)
+
+-- Toggle Functionality
+ToggleButton.MouseButton1Click:Connect(function()
+    enabled = not enabled
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        if enabled then
+            ToggleButton.Text = "ི Macro: ON "
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Soft Pink
+        else
+            ToggleButton.Text = "ི Macro: OFF "
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 182, 193) -- Soft Pink
+            LocalPlayer.Character.Humanoid.WalkSpeed = normalSpeed
+        end
+    end
+end)
+
+-- Reset speed upon character death/respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    if not enabled then
+        humanoid.WalkSpeed = normalSpeed
+    end
+end)
